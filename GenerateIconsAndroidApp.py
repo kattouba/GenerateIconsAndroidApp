@@ -1,54 +1,58 @@
-### README: Android Icon Generator Utility
+#!/usr/bin/env python3
 
-#### Description
-This utility script generates icon files for Android applications compatible with the BeeWare framework. It creates icons in various sizes and shapes (square, round, and adaptive) to meet Android specifications. Users provide an input image, and the script generates the required icons automatically.
 
----
+import os
+import sys
+from pathlib import Path
+from PIL import Image, ImageDraw
 
-#### Features
-- Generates square, round, and adaptive icons.
-- Supports input image formats such as PNG, JPG, and other common formats.
-- Outputs PNG files in multiple resolutions required for Android applications.
+def ensure_image_source_exists(image_source):
+    if not Path(image_source).is_file():
+        print(f"Error: The file '{image_source}' does not exist.")
+        sys.exit(1)
 
----
+def resize_and_save(image, output_path, size):
+    resized_image = image.resize((size, size), Image.LANCZOS)
+    resized_image.save(output_path, "PNG")
 
-#### Usage
-1. Run the script:
-   ```bash
-   python3 GenerateIconsAndroidApp.py
-   ```
-2. When prompted, provide the path to your input image file.
-3. The script will generate the icons and save them in the current working directory.
+def generate_images(image_source, spec_list, suffix):
+    with Image.open(image_source) as img:
+        for size in spec_list:
+            size = int(size)
+            output_path = Path(f"icon-{suffix}-{size}.png")
+            print(f"### Generating image: {suffix} {size}x{size}, file: {output_path}")
 
----
+            if suffix == "round":
+                mask = Image.new("L", (size, size), 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0, size, size), fill=255)
 
-#### Output
-The generated files will be named using the format:
-- `icon-square-<size>.png`
-- `icon-round-<size>.png`
-- `icon-adaptive-<size>.png`
+                resized_image = img.resize((size, size), Image.LANCZOS).convert("RGBA")
+                output = Image.new("RGBA", (size, size))
+                output.paste(resized_image, (0, 0), mask)
+                output.save(output_path, "PNG")
+            else:
+                resize_and_save(img, output_path, size)
 
----
+def main():
+    # Ask the user for the image source
+    image_source = input("Please provide the path to the image file (JPG, PNG, etc.): ").strip()
 
-#### Prerequisites
-1. Python 3.6 or higher.
-2. Install required Python libraries:
-   ```bash
-   pip install pillow
-   ```
+    ensure_image_source_exists(image_source)
 
----
+    android_spec_list = [48, 72, 96, 144, 192, 320, 480, 640, 960, 1280]
+    adaptive_spec_list = [108, 162, 216, 324, 432]
 
-#### Notes
-- Ensure the input image has sufficient resolution for resizing to large sizes (e.g., 1280x1280 pixels or higher).
-- Generated files will overwrite existing files with the same names in the current directory.
+    # Generate square images
+    generate_images(image_source, android_spec_list, "square")
 
----
+    # Generate round images
+    generate_images(image_source, android_spec_list, "round")
 
-#### License
-This utility is released under the GNU General Public License v2.
+    # Generate adaptive images
+    generate_images(image_source, adaptive_spec_list, "adaptive")
 
----
+    print("Icon generation complete!")
 
-#### Credits
-This utility is the creation of **Studio KATEB & Papa**.
+if __name__ == "__main__":
+    main()

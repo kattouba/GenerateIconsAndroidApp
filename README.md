@@ -14,7 +14,7 @@ This utility script generates icon files for Android applications compatible wit
 
 #### Usage
 1. Run the script:
-   ```bashpip install pillow
+   ```bash
    python3 GenerateIconsAndroidApp.py
    ```
 2. When prompted, provide the path to your input image file.
@@ -46,4 +46,9 @@ The generated files will be named using the format:
 ---
 
 #### License
-This utility is released under the MIT License.
+This utility is released under the GNU General Public License v2.
+
+---
+
+#### Credits
+This utility is the creation of **Studio KATEB & Papa**.
